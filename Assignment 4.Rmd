@@ -1,0 +1,52 @@
+---
+title: "Data 607 Assignment 4"
+author: "Melissa Bowman"
+date: "2022-10-7th"
+output: html_document
+---
+For assignment 4, a .csv file was transformed from a wide structure data frame to a long structure data frame. The data was then analysis to compare the arrival delays for the two airlines listed.
+
+Load libraries.
+```{r libraries}
+library(dplyr)
+library(tidyverse)
+```
+
+
+The .csv file was created in an excel where it was uploaded into a GitHub repository and information was read. Also, any blank celled information in the data frame was replaced by a NA value. 
+```{r reading the csv}
+flights_wide = read.csv('https://raw.githubusercontent.com/melbow2424/Data-607-Assignment-4/main/flights_wide.csv',
+                        na.strings=c("","NA"))
+
+print(flights_wide)
+```
+
+First to reshape the data, the values of the two airlines that where being traveled from (Alaska and AM West) needed to be filled into NA values. There, the fill function was used. Then all other NA values where dropped with drop_na(). Most of the reshaping of the original data set came from pivot_longer and pivot_wider. Pivot_longer here changed several columns into a single row known as traveling_to. Pivot_wider took the values “on time” and “delayed” and created their own columns with the values from “time”.  Also, one of the columns names was renamed just to make the information more understandable. 
+```{r reshaping data}
+flights_long <- flights_wide %>% 
+  fill("X") %>%
+  drop_na() %>%
+  pivot_longer(cols=c('Los.Angeles', 'Phoenix', 'San.Diego', 'San.Francisco', 'Seattle'),
+                    names_to='traveling_to' ,values_to = "time") %>%
+  pivot_wider(names_from = 'X.1', values_from = 'time')
+
+names(flights_long)[names(flights_long)=="X"] <- "traveling_from"
+
+print(flights_long)
+```
+
+
+The analysis I performed was to determine which airline had the least amount of delay times. This was determined by filtering the data by the two different airlines then summaries over data.  It was determined that the Alaska Airlines had the least amount of delay time due to its mean and median value being the lower then AM West values. 
+
+```{r analysis}
+alaska_flights <- flights_long %>%
+  filter(traveling_from == "ALASKA")
+
+summary(alaska_flights$delayed)
+
+am_west_flights <- flights_long %>%
+  filter(traveling_from == "AM WEST") 
+
+summary(am_west_flights$delayed)
+```
+
